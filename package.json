@@ -1,0 +1,26 @@
+{
+  "name": "ai-roadmap-generator",
+  "version": "1.0.0",
+  "description": "AI-powered learning roadmap generator web app using OpenAI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "cross-env NODE_ENV=development node server.js"
+  },
+  "keywords": [
+    "openai",
+    "roadmap",
+    "learning",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "openai": "^4.77.0"
+  }
+}
