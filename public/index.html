@@ -1,550 +1,207 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <title>AI Roadmap Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      :root {
-        color-scheme: dark;
-      }
 
-      body {
-        min-height: 100vh;
-        background: radial-gradient(circle at top left, #1d4ed8 0, #020617 45%),
-          radial-gradient(circle at bottom right, #22c55e 0, #020617 55%);
-        background-attachment: fixed;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Roadmap Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+      <link rel="stylesheet" href="./style.css" />
+</head>
 
-      .glass {
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(148, 163, 184, 0.3);
-      }
+<body class="text-slate-100 antialiased overflow-x-hidden overflow-y-auto lg:overflow-hidden">
+  <div class="floating-orb orb-1"></div>
+  <div class="floating-orb orb-2"></div>
 
-      .floating-orb {
-        position: absolute;
-        border-radius: 9999px;
-        filter: blur(40px);
-        opacity: 0.35;
-        animation: float 18s ease-in-out infinite alternate;
-      }
-
-      .orb-1 {
-        width: 260px;
-        height: 260px;
-        background: #22c55e;
-        top: -40px;
-        left: 5%;
-      }
-
-      .orb-2 {
-        width: 320px;
-        height: 320px;
-        background: #6366f1;
-        bottom: -80px;
-        right: 0;
-        animation-duration: 22s;
-      }
-
-      @keyframes float {
-        0% {
-          transform: translate3d(0, 0, 0) scale(1);
-        }
-        50% {
-          transform: translate3d(20px, -10px, 0) scale(1.05);
-        }
-        100% {
-          transform: translate3d(-15px, 15px, 0) scale(0.98);
-        }
-      }
-
-      .fade-in-up {
-        opacity: 0;
-        transform: translateY(16px) scale(0.98);
-        animation: fadeInUp 0.8s ease-out forwards;
-      }
-
-      .fade-in-delay-1 {
-        animation-delay: 0.15s;
-      }
-
-      .fade-in-delay-2 {
-        animation-delay: 0.3s;
-      }
-
-      .fade-in-delay-3 {
-        animation-delay: 0.45s;
-      }
-
-      @keyframes fadeInUp {
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      .btn-gradient {
-        background-image: linear-gradient(
-          135deg,
-          #22c55e,
-          #22c55e,
-          #6366f1,
-          #a855f7
-        );
-        background-size: 200% 200%;
-        animation: gradientShift 6s ease infinite;
-      }
-
-      @keyframes gradientShift {
-        0% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-        100% {
-          background-position: 0% 50%;
-        }
-      }
-
-      .glow-ring {
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.3),
-          0 0 45px rgba(129, 140, 248, 0.4);
-      }
-
-      .spin-slow {
-        animation: spin 14s linear infinite;
-      }
-
-      .roadmap-card {
-        border: 1px solid rgba(100, 116, 139, 0.5);
-        border-radius: 14px;
-        background: rgba(15, 23, 42, 0.65);
-        margin-top: 0.85rem;
-        overflow: hidden;
-      }
-
-      .roadmap-phase-block {
-        margin-top: 1rem;
-      }
-
-      .roadmap-phase-title {
-        margin: 0.2rem 0 0.55rem;
-        font-size: 1.12rem;
-        line-height: 1.35;
-        font-weight: 700;
-        color: #e2e8f0;
-      }
-
-      .roadmap-phase-preface {
-        margin-bottom: 0.3rem;
-      }
-
-      .roadmap-card-summary {
-        list-style: none;
-        cursor: pointer;
-        padding: 0.85rem 0.95rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        user-select: none;
-      }
-
-      .roadmap-card-summary::-webkit-details-marker {
-        display: none;
-      }
-
-      .roadmap-card-title {
-        font-weight: 600;
-        color: #bae6fd;
-        letter-spacing: 0.01em;
-      }
-
-      .roadmap-card-icon {
-        width: 0.62rem;
-        height: 0.62rem;
-        border-right: 2px solid #7dd3fc;
-        border-bottom: 2px solid #7dd3fc;
-        transform: rotate(45deg);
-        transition: transform 0.18s ease;
-      }
-
-      .roadmap-card[open] .roadmap-card-icon {
-        transform: rotate(225deg);
-      }
-
-      .roadmap-card-body {
-        border-top: 1px solid rgba(100, 116, 139, 0.35);
-        padding: 0.85rem 0.95rem 1rem;
-      }
-
-      .roadmap-card-body > :first-child {
-        margin-top: 0;
-      }
-
-      .roadmap-card-body > :last-child {
-        margin-bottom: 0;
-      }
-
-      .yt-skeleton-wrap {
-        background: rgba(2, 6, 23, 0.65);
-      }
-
-      .yt-skeleton-line {
-        position: relative;
-        overflow: hidden;
-        background: rgba(51, 65, 85, 0.45);
-        height: 10px;
-        border-radius: 9999px;
-      }
-
-      .yt-skeleton-line {
-        margin-bottom: 0.7rem;
-      }
-
-      .yt-skeleton-line.lg {
-        height: 12px;
-      }
-
-      .yt-skeleton-line::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        transform: translateX(-100%);
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(148, 163, 184, 0.08) 40%,
-          rgba(148, 163, 184, 0.2) 52%,
-          rgba(148, 163, 184, 0.08) 64%,
-          transparent 100%
-        );
-        animation: ytSkeletonShimmer 1.25s linear infinite;
-      }
-
-      @keyframes ytSkeletonShimmer {
-        100% {
-          transform: translateX(100%);
-        }
-      }
-    </style>
-  </head>
-  <body class="text-slate-100 antialiased overflow-x-hidden overflow-y-auto lg:overflow-hidden">
-    <div class="floating-orb orb-1"></div>
-    <div class="floating-orb orb-2"></div>
-
-    <div
-      class="relative min-h-screen lg:h-screen flex items-center justify-center px-4 py-6 lg:py-4"
-    >
-      <div class="max-w-6xl w-full lg:h-full grid lg:grid-cols-2 gap-6 lg:gap-10 items-stretch">
-        <section
-          class="glass rounded-3xl p-8 md:p-10 shadow-2xl lg:h-full fade-in-up fade-in-delay-1"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="h-10 w-10 -ml-1 rounded-2xl bg-sky-500/20 flex items-center justify-center glow-ring"
-            >
-              <svg
-                class="w-6 h-6 text-sky-400 spin-slow"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.6"
-                  d="M12 6v6l3 3m5-3a8 8 0 11-16 0 8 8 0 0116 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
-                AI Roadmap Studio
-              </p>
-              <h1 class="text-2xl md:text-3xl font-semibold mt-1">
-                Design your next learning journey.
-              </h1>
-            </div>
-          </div>
-
-          <p class="text-sm md:text-base text-slate-300 mb-8 max-w-xl">
-            Describe your goal and constraints, and this tool will craft a
-            customized, step-by-step roadmap powered by NVIDIA Llama.
+  <div class="relative min-h-screen lg:h-screen flex items-center justify-center px-4 py-6 lg:py-4">
+    <div class="max-w-6xl w-full lg:h-full grid lg:grid-cols-2 gap-6 lg:gap-10 items-stretch">
+      <section class="glass rounded-3xl p-8 md:p-10 shadow-2xl lg:h-full fade-in-up fade-in-delay-1">
+        <div class="mb-6">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
+            AI Roadmap Studio
           </p>
+          <h1 class="text-2xl md:text-3xl font-semibold mt-1">
+            Design your next learning journey.
+          </h1>
+        </div>
 
-          <form id="roadmap-form" class="space-y-5">
+        <p id="authMessage" class="text-xs text-slate-300 mb-6">
+          Checking sign-in status...
+        </p>
+
+        <form id="roadmap-form" class="space-y-5">
+          <div>
+            <label for="goal" class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2">Your
+              main goal</label>
+            <textarea id="goal" rows="3" required
+              class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-4 py-3 text-sm placeholder:text-slate-500 transition"
+              placeholder="Example: Become a mid-level AI engineer focusing on LLMs and tools in the next 6 months."></textarea>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4">
             <div>
-              <label
-                for="goal"
-                class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2"
-                >Your main goal</label
-              >
-              <textarea
-                id="goal"
-                rows="3"
-                required
-                class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-4 py-3 text-sm placeholder:text-slate-500 transition"
-                placeholder="Example: Become a mid-level AI engineer focusing on LLMs and tools in the next 6 months."
-              ></textarea>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-4">
-              <div>
-                <label
-                  for="experienceLevel"
-                  class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2"
-                  >Current experience</label
-                >
-                <select
-                  id="experienceLevel"
-                  class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition"
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="junior">Junior</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="senior">Senior</option>
-                  <option value="other">Other / Not sure</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  for="timeframe"
-                  class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2"
-                  >Timeframe</label
-                >
-                <select
-                  id="timeframe"
-                  required
-                  class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition"
-                >
-                  <option value="">Select timeframe</option>
-                  <option>1 month</option>
-                  <option>3 months</option>
-                  <option>6 months</option>
-                  <option>12 months</option>
-                  <option>Flexible</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid md:grid-cols-[1.2fr,0.8fr] gap-4 items-center">
-              <div>
-                <label
-                  for="hoursPerWeek"
-                  class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-1"
-                  >Hours per week</label
-                >
-                <div class="flex items-center gap-3">
-                  <input
-                    type="range"
-                    id="hoursPerWeek"
-                    min="2"
-                    max="40"
-                    value="10"
-                    class="w-full accent-sky-400"
-                  />
-                  <span
-                    id="hoursPerWeekValue"
-                    class="text-sm font-semibold text-sky-300 w-10 text-right"
-                    >10</span
-                  >
-                  <span class="text-xs text-slate-400">hrs</span>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  for="learningStyle"
-                  class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2"
-                  >Learning style</label
-                >
-                <select
-                  id="learningStyle"
-                  class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition"
-                >
-                  <option>Project-based</option>
-                  <option>Video-first</option>
-                  <option>Reading & docs</option>
-                  <option>Mixed / no strong preference</option>
-                </select>
-              </div>
+              <label for="experienceLevel"
+                class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2">Current
+                experience</label>
+              <select id="experienceLevel"
+                class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition">
+                <option value="beginner">Beginner</option>
+                <option value="junior">Junior</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="senior">Senior</option>
+                <option value="other">Other / Not sure</option>
+              </select>
             </div>
 
             <div>
-              <label
-                for="focusAreas"
-                class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2"
-                >Technologies or focus areas</label
-              >
-              <input
-                id="focusAreas"
-                type="text"
-                class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition"
-                placeholder="Example: Python, PyTorch, LangChain, RAG, tools, MLOps"
-              />
-              <p class="mt-1 text-[11px] text-slate-400">
-                Optional, but helps the roadmap align with the tools you care
-                about.
-              </p>
-            </div>
-
-            <div class="pt-2 flex justify-center">
-              <button
-                type="submit"
-                id="generateBtn"
-                class="relative inline-flex items-center justify-center px-5 py-2.5 rounded-2xl text-sm font-semibold text-slate-950 btn-gradient hover:scale-[1.02] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sky-400 focus-visible:ring-offset-slate-950"
-              >
-                <span class="mr-2">Generate roadmap</span>
-                <span
-                  class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-950/40"
-                >
-                  <svg
-                    id="btnSpinner"
-                    class="hidden w-3.5 h-3.5 animate-spin text-slate-100"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-20"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                      fill="none"
-                    />
-                    <path
-                      class="opacity-80"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
-                  </svg>
-                  <svg
-                    id="btnIcon"
-                    class="w-3.5 h-3.5 text-slate-100"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                      d="M4.5 19.5l15-7.5-15-7.5L9 12l-4.5 7.5z"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section
-          class="glass rounded-3xl p-6 md:p-7 lg:p-8 shadow-2xl flex flex-col min-h-0 lg:h-full fade-in-up fade-in-delay-2"
-        >
-          <div class="mb-4">
-            <div>
-              <h2 class="text-lg md:text-xl font-semibold">
-                Your AI roadmap
-              </h2>
-              <p class="text-xs text-slate-400 mt-1">
-                Generated with NVIDIA Llama 3 8B - you can tweak the inputs and
-                regenerate anytime.
-              </p>
+              <label for="timeframe"
+                class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2">Timeframe</label>
+              <select id="timeframe" required
+                class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition">
+                <option value="">Select timeframe</option>
+                <option>1 month</option>
+                <option>3 months</option>
+                <option>6 months</option>
+                <option>12 months</option>
+                <option>Flexible</option>
+              </select>
             </div>
           </div>
 
-          <div
-            id="statusMessage"
-            class="text-xs text-slate-300 mb-2"
-          ></div>
+          <div class="grid md:grid-cols-[1.2fr,0.8fr] gap-4 items-center">
+            <div>
+              <label for="hoursPerWeek"
+                class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-1">Hours per
+                week</label>
+              <div class="flex items-center gap-1.5">
+                <input type="range" id="hoursPerWeek" min="2" max="40" value="10" class="w-full accent-sky-400" />
+                <span id="hoursPerWeekValue" class="text-sm font-semibold text-sky-300">10</span>
+                <span class="text-xs text-slate-400">hrs</span>
+              </div>
+            </div>
 
-          <div class="flex justify-end mb-2">
-            <button
-              id="copyBtn"
-              class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-600/60 text-[11px] font-medium text-slate-200 hover:bg-slate-800/70 active:scale-95 transition"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <rect
-                  x="9"
-                  y="9"
-                  width="10"
-                  height="10"
-                  rx="2"
-                  ry="2"
-                  stroke-width="1.6"
-                />
-                <rect
-                  x="5"
-                  y="5"
-                  width="10"
-                  height="10"
-                  rx="2"
-                  ry="2"
-                  stroke-width="1.6"
-                  class="opacity-60"
-                />
-              </svg>
-              <span>Copy</span>
+            <div>
+              <label for="learningStyle"
+                class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2">Learning
+                style</label>
+              <select id="learningStyle"
+                class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition">
+                <option>Project-based</option>
+                <option>Video-first</option>
+                <option>Reading & docs</option>
+                <option>Mixed / no strong preference</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="focusAreas"
+              class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 mb-2">Technologies or focus
+              areas</label>
+            <input id="focusAreas" type="text"
+              class="w-full rounded-2xl bg-slate-900/60 border border-slate-600/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/60 outline-none px-3 py-2.5 text-sm transition"
+              placeholder="Example: Python, PyTorch, LangChain, RAG, tools, MLOps" />
+            <p class="mt-1 text-[11px] text-slate-400">
+              Optional, but helps the roadmap align with the tools you care
+              about.
+            </p>
+          </div>
+
+          <div class="pt-2 flex flex-wrap items-center justify-center gap-2">
+            <a id="googleLoginBtn" href="/auth/google"
+              class="inline-flex items-center justify-center px-5 py-2.5 rounded-2xl text-sm font-semibold text-slate-950 btn-gradient hover:scale-[1.02] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sky-400 focus-visible:ring-offset-slate-950">
+              Sign in with Google
+            </a>
+            <a id="logoutBtn" href="/auth/logout"
+              class="hidden inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-semibold border border-slate-500/70 text-slate-100 hover:bg-slate-800/80 transition">
+              Sign out
+            </a>
+            <button type="submit" id="generateBtn"
+              class="relative inline-flex items-center justify-center px-5 py-2.5 rounded-2xl text-sm font-semibold text-slate-950 btn-gradient hover:scale-[1.02] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sky-400 focus-visible:ring-offset-slate-950">
+              <span class="mr-2">Generate roadmap</span>
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-950/40">
+                <svg id="btnSpinner" class="hidden w-3.5 h-3.5 animate-spin text-slate-100" viewBox="0 0 24 24">
+                  <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                <svg id="btnIcon" class="w-3.5 h-3.5 text-slate-100" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                    d="M4.5 19.5l15-7.5-15-7.5L9 12l-4.5 7.5z" />
+                </svg>
+              </span>
             </button>
           </div>
+        </form>
+      </section>
 
-          <div
-            id="roadmapContainer"
-            class="relative flex-1 min-h-0 rounded-2xl border border-slate-700/70 bg-slate-950/50 overflow-hidden"
-          >
-            <div
-              id="roadmapSkeleton"
-              class="hidden absolute inset-0 p-4 md:p-5 yt-skeleton-wrap pointer-events-none overflow-hidden"
-            >
-              <div class="yt-skeleton-line lg w-11/12"></div>
-              <div class="yt-skeleton-line w-8/12"></div>
-              <div class="yt-skeleton-line w-10/12"></div>
-              <div class="yt-skeleton-line w-6/12"></div>
-              <div class="yt-skeleton-line w-9/12"></div>
-              <div class="yt-skeleton-line w-7/12"></div>
-              <div class="yt-skeleton-line w-11/12"></div>
-              <div class="yt-skeleton-line w-5/12"></div>
-              <div class="yt-skeleton-line w-10/12"></div>
-              <div class="yt-skeleton-line w-8/12"></div>
-              <div class="yt-skeleton-line w-9/12"></div>
-              <div class="yt-skeleton-line w-6/12"></div>
-              <div class="yt-skeleton-line w-11/12"></div>
-              <div class="yt-skeleton-line w-7/12"></div>
-              <div class="yt-skeleton-line w-10/12"></div>
-              <div class="yt-skeleton-line w-4/12"></div>
-              <div class="yt-skeleton-line w-9/12"></div>
-              <div class="yt-skeleton-line w-8/12"></div>
-            </div>
-
-            <div
-              id="roadmapContent"
-              class="relative h-full overflow-y-auto px-4 py-4 text-sm leading-relaxed prose prose-invert prose-slate prose-headings:text-slate-50 prose-p:text-slate-200 prose-strong:text-sky-300 prose-li:marker:text-slate-500"
-            >
-              <p class="text-slate-300 text-sm">
-                Your roadmap will appear here after you click
-                <span class="font-semibold text-sky-300">Generate roadmap</span
-                >. Include your goals and constraints on the left for a more
-                tailored plan.
-              </p>
-            </div>
+      <section
+        class="glass rounded-3xl p-6 md:p-7 lg:p-8 shadow-2xl flex flex-col min-h-0 lg:h-full fade-in-up fade-in-delay-2">
+        <div class="mb-4">
+          <div>
+            <h2 class="text-lg md:text-xl font-semibold">
+              Your AI roadmap
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Generated with NVIDIA Llama 3 8B - you can tweak the inputs and
+              regenerate anytime.
+            </p>
           </div>
-        </section>
-      </div>
-    </div>
+        </div>
 
-    <script src="./app.js"></script>
-  </body>
+        <div id="statusMessage" class="text-xs text-slate-300 mb-2"></div>
+
+        <div class="flex justify-end mb-2">
+          <button id="copyBtn"
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-600/60 text-[11px] font-medium text-slate-200 hover:bg-slate-800/70 active:scale-95 transition">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <rect x="9" y="9" width="10" height="10" rx="2" ry="2" stroke-width="1.6" />
+              <rect x="5" y="5" width="10" height="10" rx="2" ry="2" stroke-width="1.6" class="opacity-60" />
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+
+        <div id="roadmapContainer"
+          class="relative flex-1 min-h-0 rounded-2xl border border-slate-700/70 bg-slate-950/50 overflow-hidden">
+          <div id="roadmapSkeleton"
+            class="hidden absolute inset-0 p-4 md:p-5 yt-skeleton-wrap pointer-events-none overflow-hidden">
+            <div class="yt-skeleton-line lg w-11/12"></div>
+            <div class="yt-skeleton-line w-8/12"></div>
+            <div class="yt-skeleton-line w-10/12"></div>
+            <div class="yt-skeleton-line w-6/12"></div>
+            <div class="yt-skeleton-line w-9/12"></div>
+            <div class="yt-skeleton-line w-7/12"></div>
+            <div class="yt-skeleton-line w-11/12"></div>
+            <div class="yt-skeleton-line w-5/12"></div>
+            <div class="yt-skeleton-line w-10/12"></div>
+            <div class="yt-skeleton-line w-8/12"></div>
+            <div class="yt-skeleton-line w-9/12"></div>
+            <div class="yt-skeleton-line w-6/12"></div>
+            <div class="yt-skeleton-line w-11/12"></div>
+            <div class="yt-skeleton-line w-7/12"></div>
+            <div class="yt-skeleton-line w-10/12"></div>
+            <div class="yt-skeleton-line w-4/12"></div>
+            <div class="yt-skeleton-line w-9/12"></div>
+            <div class="yt-skeleton-line w-8/12"></div>
+          </div>
+
+          <div id="roadmapContent"
+            class="relative h-full overflow-y-auto px-4 py-4 text-sm leading-relaxed prose prose-invert prose-slate prose-headings:text-slate-50 prose-p:text-slate-200 prose-strong:text-sky-300 prose-li:marker:text-slate-500">
+            <p class="text-slate-300 text-sm">
+              Your roadmap will appear here after you click
+              <span class="font-semibold text-sky-300">Generate roadmap</span>. Include your goals and constraints on
+              the left for a more
+              tailored plan.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+
 </html>
