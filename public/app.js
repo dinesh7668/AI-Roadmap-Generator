@@ -1,4 +1,4 @@
-﻿const form = document.getElementById("roadmap-form");
+const form = document.getElementById("roadmap-form");
 const generateBtn = document.getElementById("generateBtn");
 const btnSpinner = document.getElementById("btnSpinner");
 const btnIcon = document.getElementById("btnIcon");
@@ -8,8 +8,81 @@ const statusMessage = document.getElementById("statusMessage");
 const copyBtn = document.getElementById("copyBtn");
 const hoursRange = document.getElementById("hoursPerWeek");
 const hoursValue = document.getElementById("hoursPerWeekValue");
+const authMessage = document.getElementById("authMessage");
+const loginBtn = document.getElementById("googleLoginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+let isAuthenticated = false;
+let authConfigured = true;
+let currentUser = null;
 
 let lastRoadmapMarkdown = "";
+let renderJobId = 0;
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function setGenerateAvailability() {
+  const disabled = !authConfigured;
+  generateBtn.disabled = disabled;
+  generateBtn.classList.toggle("opacity-70", disabled);
+  generateBtn.classList.toggle("cursor-not-allowed", disabled);
+}
+
+function updateAuthUI() {
+  if (!authMessage || !loginBtn || !logoutBtn) {
+    return;
+  }
+
+  if (!authConfigured) {
+    authMessage.textContent = "Google sign-in is not configured on the server.";
+    authMessage.className = "text-xs text-rose-300 mb-3";
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.add("hidden");
+    isAuthenticated = false;
+    setGenerateAvailability();
+    return;
+  }
+
+  if (isAuthenticated) {
+    const identity = currentUser?.email || currentUser?.displayName || "Signed in";
+    authMessage.textContent = `Signed in as ${identity}`;
+    authMessage.className = "text-xs text-emerald-300 mb-3";
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+  } else {
+    authMessage.textContent = "Sign in with Google to generate a roadmap.";
+    authMessage.className = "text-xs text-amber-300 mb-3";
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+  }
+
+  setGenerateAvailability();
+}
+
+async function checkAuthSession() {
+  try {
+    const response = await fetch("/api/auth/session", {
+      credentials: "same-origin",
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to verify session.");
+    }
+
+    const data = await response.json();
+    authConfigured = data.configured !== false;
+    isAuthenticated = Boolean(data.authenticated);
+    currentUser = data.user || null;
+  } catch (_error) {
+    authConfigured = false;
+    isAuthenticated = false;
+    currentUser = null;
+  } finally {
+    updateAuthUI();
+  }
+}
 
 // Simple Markdown -> HTML renderer for headings, bullets, and emphasis
 function renderMarkdown(md) {
@@ -334,16 +407,19 @@ function buildCollapsibleRoadmap(md) {
 
 function setLoading(isLoading) {
   if (isLoading) {
+    renderJobId += 1;
     generateBtn.disabled = true;
     generateBtn.classList.add("opacity-70", "cursor-not-allowed");
     btnSpinner.classList.remove("hidden");
     btnIcon.classList.add("hidden");
     roadmapSkeleton.classList.remove("hidden");
     roadmapContent.classList.add("opacity-0", "pointer-events-none");
+    copyBtn.classList.add("hidden");
+    lastRoadmapMarkdown = "";
     statusMessage.textContent =
       "Generating a tailored roadmap with NVIDIA Llama 3 8B...";
   } else {
-    generateBtn.disabled = false;
+    setGenerateAvailability();
     generateBtn.classList.remove("opacity-70", "cursor-not-allowed");
     btnSpinner.classList.add("hidden");
     btnIcon.classList.remove("hidden");
@@ -352,12 +428,58 @@ function setLoading(isLoading) {
   }
 }
 
+async function renderRoadmapLineByLine(roadmap, jobId) {
+  const lines = String(roadmap || "").split(/\r?\n/);
+
+  if (!lines.length) {
+    roadmapContent.innerHTML = "<p>Empty roadmap.</p>";
+    return false;
+  }
+
+  let streamed = "";
+  roadmapContent.innerHTML = "";
+  for (let i = 0; i < lines.length; i += 1) {
+    if (jobId !== renderJobId) {
+      return false;
+    }
+
+    streamed += (i === 0 ? "" : "\n") + lines[i];
+    roadmapContent.innerHTML = buildCollapsibleRoadmap(streamed);
+    roadmapContent.scrollTop = roadmapContent.scrollHeight;
+
+    const line = lines[i].trim();
+    const waitMs = line ? 22 : 12;
+    await delay(waitMs);
+  }
+
+  if (jobId !== renderJobId) {
+    return false;
+  }
+
+  roadmapContent.innerHTML = buildCollapsibleRoadmap(roadmap) || "<p>Empty roadmap.</p>";
+  return true;
+}
+
 hoursRange.addEventListener("input", () => {
   hoursValue.textContent = hoursRange.value;
 });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  if (!authConfigured) {
+    statusMessage.textContent =
+      "Google auth is not configured on the server. Please set it in .env.";
+    statusMessage.className = "text-xs text-rose-300 mb-2";
+    return;
+  }
+
+  if (!isAuthenticated) {
+    statusMessage.textContent = "Redirecting to Google sign-in...";
+    statusMessage.className = "text-xs text-amber-300 mb-2";
+    window.location.href = "/auth/google";
+    return;
+  }
 
   const goal = document.getElementById("goal").value.trim();
   const experienceLevel = document.getElementById("experienceLevel").value;
@@ -378,10 +500,12 @@ form.addEventListener("submit", async (event) => {
     : [];
 
   setLoading(true);
+  const jobId = renderJobId;
   statusMessage.className = "text-xs text-slate-300 mb-2";
 
   try {
     const response = await fetch("/api/generate-roadmap", {
+      credentials: "same-origin",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -399,14 +523,22 @@ form.addEventListener("submit", async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401) {
+        isAuthenticated = false;
+        currentUser = null;
+        updateAuthUI();
+      }
       throw new Error(data.error || "Failed to generate roadmap.");
     }
 
     const roadmap = data.roadmap || "";
     lastRoadmapMarkdown = roadmap;
 
-    const html = buildCollapsibleRoadmap(roadmap);
-    roadmapContent.innerHTML = html || "<p>Empty roadmap.</p>";
+    // Start the "AI writing" view immediately after we receive data.
+    roadmapSkeleton.classList.add("hidden");
+    roadmapContent.classList.remove("opacity-0", "pointer-events-none");
+    statusMessage.textContent = "Writing your roadmap...";
+    statusMessage.className = "text-xs text-sky-300 mb-2";
 
     roadmapContent.classList.remove("animate-[fadeInUp_0.5s_ease-out]");
     // Trigger reflow for animation restart
@@ -414,21 +546,37 @@ form.addEventListener("submit", async (event) => {
     roadmapContent.offsetHeight;
     roadmapContent.classList.add("animate-[fadeInUp_0.5s_ease-out]");
 
+    const completed = await renderRoadmapLineByLine(roadmap, jobId);
+    if (!completed) {
+      return;
+    }
+
+    if (jobId !== renderJobId) {
+      return;
+    }
+
     statusMessage.textContent =
       "Roadmap generated. You can tweak the inputs and regenerate.";
     statusMessage.className = "text-xs text-emerald-300 mb-2";
 
-    if (lastRoadmapMarkdown) {
+    if (lastRoadmapMarkdown && jobId === renderJobId) {
       copyBtn.classList.remove("hidden");
     }
   } catch (error) {
     console.error(error);
+    if (jobId !== renderJobId) {
+      return;
+    }
+    lastRoadmapMarkdown = "";
+    copyBtn.classList.add("hidden");
     statusMessage.textContent =
       error.message ||
       "Something went wrong while generating the roadmap. Please try again.";
     statusMessage.className = "text-xs text-rose-300 mb-2";
   } finally {
-    setLoading(false);
+    if (jobId === renderJobId) {
+      setLoading(false);
+    }
   }
 });
 
@@ -450,3 +598,19 @@ if (copyBtn) {
     }
   });
 }
+
+const authResult = new URLSearchParams(window.location.search).get("auth");
+if (authResult === "failed") {
+  statusMessage.textContent = "Google sign-in failed. Please try again.";
+  statusMessage.className = "text-xs text-rose-300 mb-2";
+}
+if (authResult === "disabled") {
+  statusMessage.textContent =
+    "Google sign-in is disabled because server credentials are missing.";
+  statusMessage.className = "text-xs text-rose-300 mb-2";
+}
+
+checkAuthSession();
+
+
+
