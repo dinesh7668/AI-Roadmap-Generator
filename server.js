@@ -1,16 +1,105 @@
-﻿const path = require("path");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const session = require("express-session");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const OpenAI = require("openai");
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const appOrigin = process.env.APP_ORIGIN || `http://localhost:${PORT}`;
 
-app.use(cors());
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleCallbackUrl =
+  process.env.GOOGLE_CALLBACK_URL || `${appOrigin}/auth/google/callback`;
+
+const sessionSecret = process.env.SESSION_SECRET;
+const isProduction = process.env.NODE_ENV === "production";
+const isGoogleAuthConfigured = Boolean(googleClientId && googleClientSecret);
+
+app.use(
+  cors({
+    origin: appOrigin,
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(
+  session({
+    secret: sessionSecret || "change-this-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProduction,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+if (!sessionSecret) {
+  console.warn(
+    "Warning: SESSION_SECRET is not set. Set a strong SESSION_SECRET in .env for secure sessions."
+  );
+}
+
+if (isGoogleAuthConfigured) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: googleClientId,
+        clientSecret: googleClientSecret,
+        callbackURL: googleCallbackUrl,
+      },
+      (_accessToken, _refreshToken, profile, done) => {
+        const user = {
+          id: profile.id,
+          displayName: profile.displayName,
+          email: profile.emails?.[0]?.value || null,
+          photo: profile.photos?.[0]?.value || null,
+        };
+        done(null, user);
+      }
+    )
+  );
+} else {
+  console.warn(
+    "Warning: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET missing. Google sign-in is disabled until configured in .env."
+  );
+}
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
+function ensureAuthenticated(req, res, next) {
+  if (!isGoogleAuthConfigured) {
+    return res.status(503).json({
+      error:
+        "Google auth is not configured on the server. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.",
+    });
+  }
+
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+
+  return res.status(401).json({
+    error: "Please sign in with Google to use this feature.",
+  });
+}
 
 // Serve static frontend
 const publicDir = path.join(__dirname, "public");
@@ -19,6 +108,65 @@ app.use(express.static(publicDir));
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+// Auth status
+app.get("/api/auth/session", (req, res) => {
+  const authenticated = Boolean(req.isAuthenticated && req.isAuthenticated());
+
+  res.json({
+    configured: isGoogleAuthConfigured,
+    authenticated,
+    user: authenticated
+      ? {
+          displayName: req.user?.displayName || null,
+          email: req.user?.email || null,
+          photo: req.user?.photo || null,
+        }
+      : null,
+  });
+});
+
+// Google auth routes
+app.get("/auth/google", (req, res, next) => {
+  if (!isGoogleAuthConfigured) {
+    return res.redirect("/?auth=disabled");
+  }
+
+  return passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account",
+  })(req, res, next);
+});
+
+app.get(
+  "/auth/google/callback",
+  (req, res, next) => {
+    if (!isGoogleAuthConfigured) {
+      return res.redirect("/?auth=disabled");
+    }
+
+    return passport.authenticate("google", {
+      failureRedirect: "/?auth=failed",
+      session: true,
+    })(req, res, next);
+  },
+  (_req, res) => {
+    res.redirect("/");
+  }
+);
+
+app.get("/auth/logout", (req, res, next) => {
+  req.logout((logoutErr) => {
+    if (logoutErr) {
+      return next(logoutErr);
+    }
+
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.redirect("/");
+    });
+  });
 });
 
 // NVIDIA API config (OpenAI-compatible endpoint)
@@ -112,7 +260,7 @@ Requirements:
   }
 }
 
-app.post("/api/generate-roadmap", async (req, res) => {
+app.post("/api/generate-roadmap", ensureAuthenticated, async (req, res) => {
   try {
     if (!nvidiaClient) {
       return res.status(500).json({
@@ -243,6 +391,7 @@ app.get("*", (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`AI Roadmap Generator running on http://localhost:${PORT}`);
+  console.log(`AI Roadmap Generator running on ${appOrigin}`);
+  console.log(`Google callback URL: ${googleCallbackUrl}`);
   console.log(`Using NVIDIA model: ${nvidiaModel}`);
 });
