@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NexusPath — AI-Powered Learning Roadmap Generator</title>
+    <meta name="description" content="Generate personalized AI-powered learning roadmaps tailored to your goals, experience, and schedule. Built with cutting-edge AI technology." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Animated Background -->
+    <canvas id="bgCanvas"></canvas>
+    <div class="noise-overlay"></div>
+
+    <!-- Top gradient bar -->
+    <div class="top-accent-bar"></div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+      <!-- Header -->
+      <header class="app-header" id="appHeader">
+        <div class="header-inner">
+          <div class="logo-group">
+            <div class="logo-icon" id="logoIcon">
+              <svg viewBox="0 0 40 40" fill="none">
+                <path d="M20 4L4 12L20 20L36 12L20 4Z" stroke="url(#logoGrad1)" stroke-width="1.5" fill="url(#logoGrad1)" fill-opacity="0.15"/>
+                <path d="M4 20L20 28L36 20" stroke="url(#logoGrad2)" stroke-width="1.5" fill="none"/>
+                <path d="M4 28L20 36L36 28" stroke="url(#logoGrad3)" stroke-width="1.5" fill="none" opacity="0.5"/>
+                <defs>
+                  <linearGradient id="logoGrad1" x1="4" y1="4" x2="36" y2="20">
+                    <stop stop-color="#6366f1"/>
+                    <stop offset="1" stop-color="#a78bfa"/>
+                  </linearGradient>
+                  <linearGradient id="logoGrad2" x1="4" y1="20" x2="36" y2="28">
+                    <stop stop-color="#a78bfa"/>
+                    <stop offset="1" stop-color="#c084fc"/>
+                  </linearGradient>
+                  <linearGradient id="logoGrad3" x1="4" y1="28" x2="36" y2="36">
+                    <stop stop-color="#c084fc"/>
+                    <stop offset="1" stop-color="#e879f9"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="logo-text">
+              <h1>NexusPath</h1>
+              <span class="logo-tagline">AI Roadmap Generator</span>
+            </div>
+          </div>
+          <div class="header-badge">
+            <span class="badge-dot"></span>
+            <span>Powered by AI</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Hero Section -->
+      <section class="hero-section" id="heroSection">
+        <div class="hero-glow"></div>
+        <h2 class="hero-title">
+          <span class="hero-line-1">Craft Your</span>
+          <span class="hero-line-2">Learning Journey</span>
+        </h2>
+        <p class="hero-subtitle">Transform your goals into a structured, AI-generated roadmap with phases, milestones, and curated resources — all personalized for you.</p>
+      </section>
+
+      <!-- Main Grid -->
+      <main class="main-grid" id="mainGrid">
+        <!-- Input Panel -->
+        <section class="input-panel glass-panel" id="inputPanel">
+          <div class="panel-header">
+            <div class="panel-header-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="panel-title">Configure Your Path</h2>
+              <p class="panel-desc">Define your learning parameters</p>
+            </div>
+          </div>
+
+          <form id="roadmap-form" class="roadmap-form" autocomplete="off">
+            <!-- Goal -->
+            <div class="form-group" id="goalGroup">
+              <label for="goal" class="form-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                Learning Goal
+              </label>
+              <textarea id="goal" rows="3" required class="form-control form-textarea" placeholder="e.g. Master full-stack web development with React and Node.js"></textarea>
+              <span class="form-hint">Be specific — the more detail, the better your roadmap.</span>
+            </div>
+
+            <!-- Level & Timeframe -->
+            <div class="form-row">
+              <div class="form-group" id="levelGroup">
+                <label for="experienceLevel" class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  Experience Level
+                </label>
+                <div class="select-wrapper">
+                  <select id="experienceLevel" class="form-control form-select">
+                    <option value="beginner">Beginner</option>
+                    <option value="junior">Junior</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="senior">Senior / Advanced</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <svg class="select-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <div class="form-group" id="timeframeGroup">
+                <label for="timeframe" class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Timeframe
+                </label>
+                <div class="select-wrapper">
+                  <select id="timeframe" required class="form-control form-select">
+                    <option value="">Select duration...</option>
+                    <option value="1 Month">1 Month</option>
+                    <option value="3 Months">3 Months</option>
+                    <option value="6 Months">6 Months</option>
+                    <option value="12 Months">12 Months</option>
+                    <option value="Flexible">Flexible</option>
+                  </select>
+                  <svg class="select-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hours per week -->
+            <div class="form-group" id="hoursGroup">
+              <label for="hoursPerWeek" class="form-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Hours per Week
+              </label>
+              <div class="range-container">
+                <input type="range" id="hoursPerWeek" min="2" max="40" value="10" class="form-range" />
+                <div class="range-info">
+                  <span class="range-min">2h</span>
+                  <span class="range-value" id="hoursPerWeekValue">10 hours/week</span>
+                  <span class="range-max">40h</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Learning Style -->
+            <div class="form-group" id="styleGroup">
+              <label for="learningStyle" class="form-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Preferred Learning Style
+              </label>
+              <div class="style-chips" id="styleChips">
+                <button type="button" class="style-chip active" data-value="Projects">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/></svg>
+                  Projects
+                </button>
+                <button type="button" class="style-chip" data-value="Video">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Video
+                </button>
+                <button type="button" class="style-chip" data-value="Reading">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  Reading
+                </button>
+                <button type="button" class="style-chip" data-value="Mixed">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  Mixed
+                </button>
+              </div>
+              <input type="hidden" id="learningStyle" value="Projects" />
+            </div>
+
+            <!-- Focus Areas -->
+            <div class="form-group" id="focusGroup">
+              <label for="focusAreas" class="form-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+                Focus Areas
+                <span class="label-optional">(optional)</span>
+              </label>
+              <input id="focusAreas" type="text" class="form-control" placeholder="e.g. React, Node.js, TypeScript, AWS" />
+            </div>
+
+            <!-- Submit -->
+            <div class="form-actions">
+              <button type="submit" id="generateBtn" class="btn-generate">
+                <span class="btn-bg"></span>
+                <span class="btn-content">
+                  <svg id="btnIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                  <svg id="btnSpinner" class="btn-spinner hidden" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" opacity="0.25"/>
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                  <span id="btnText">Generate Roadmap</span>
+                </span>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Output Panel -->
+        <section class="output-panel glass-panel" id="outputPanel">
+          <!-- Output Header -->
+          <div class="output-header">
+            <div class="output-header-left">
+              <div class="output-status-indicator" id="outputStatusDot">
+                <span class="status-dot idle"></span>
+              </div>
+              <div>
+                <h2 class="panel-title">Your Roadmap</h2>
+                <p class="panel-desc" id="outputStatusText">Awaiting input</p>
+              </div>
+            </div>
+            <div class="output-header-right">
+              <button id="copyBtn" class="btn-copy hidden" title="Copy roadmap as markdown">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Message -->
+          <div id="statusMessage" class="status-message hidden"></div>
+
+          <!-- Skeleton Loader -->
+          <div id="roadmapSkeleton" class="skeleton-container hidden">
+            <div class="skeleton-header">
+              <div class="skeleton-spinner">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="32" stroke-linecap="round" opacity="0.2"/>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#skelGrad)" stroke-width="2" stroke-linecap="round"/>
+                  <defs><linearGradient id="skelGrad"><stop stop-color="#818cf8"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs>
+                </svg>
+              </div>
+              <span>Generating your personalized roadmap...</span>
+            </div>
+            <div class="skeleton-body">
+              <div class="skel-block">
+                <div class="skel-line skel-w-60 skel-h-lg"></div>
+                <div class="skel-line skel-w-100"></div>
+                <div class="skel-line skel-w-85"></div>
+                <div class="skel-line skel-w-70"></div>
+              </div>
+              <div class="skel-block">
+                <div class="skel-line skel-w-45 skel-h-lg"></div>
+                <div class="skel-line skel-w-90"></div>
+                <div class="skel-line skel-w-80"></div>
+                <div class="skel-line skel-w-95"></div>
+              </div>
+              <div class="skel-block">
+                <div class="skel-line skel-w-50 skel-h-lg"></div>
+                <div class="skel-line skel-w-100"></div>
+                <div class="skel-line skel-w-75"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roadmap Content -->
+          <div class="output-body" id="outputBody">
+            <div id="roadmapContent" class="roadmap-content">
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="url(#emptyGrad)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                    <defs><linearGradient id="emptyGrad" x1="2" y1="2" x2="22" y2="22"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+                  </svg>
+                </div>
+                <h3 class="empty-state-title">No roadmap yet</h3>
+                <p class="empty-state-text">Configure your learning parameters and click <strong>Generate Roadmap</strong> to create your personalized learning path.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
