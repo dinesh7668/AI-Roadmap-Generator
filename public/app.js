@@ -469,6 +469,11 @@ form.addEventListener("submit", async (event) => {
       const btn = firstCard.querySelector(".phase-header");
       if (btn) btn.setAttribute("aria-expanded", "true");
     }
+
+    // Save to history if user is signed in
+    if (typeof saveRoadmapToHistory === "function") {
+      saveRoadmapToHistory(goal, experienceLevel, timeframe, hoursPerWeek, learningStyle, focusAreas, roadmap);
+    }
   } catch (error) {
     console.error(error);
     setStatus("error", error.message || "Something went wrong. Please try again.");
