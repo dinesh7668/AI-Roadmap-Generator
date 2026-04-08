@@ -49,3 +49,4 @@ Then open `http://localhost:3000` in your browser.
 - `server.js` exposes `POST /api/generate-roadmap`, which calls NVIDIA's OpenAI-compatible chat endpoint.
 - The frontend (in `public/index.html` and `public/app.js`) collects your inputs and displays the generated roadmap.
 # A commit just o stay cinsistent....
+## It is an updated version before this it was developed only using HTML, CSS and JavaScript.
