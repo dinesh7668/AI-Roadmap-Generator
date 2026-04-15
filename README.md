@@ -1,7 +1,8 @@
 ﻿## AI Roadmap Generator
 
 An AI-powered learning roadmap generator web app. Enter your goals, timeframe, and constraints, and the app uses NVIDIA NIM (meta/llama3-8b-instruct) to build a tailored, phase-based learning plan.
-Generate your roadmap
+
+Generate your roadmap with the help of AI.
 
 ### 1. Prerequisites
 
